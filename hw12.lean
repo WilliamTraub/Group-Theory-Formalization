@@ -71,6 +71,18 @@ theorem inv_id [Group G] : (Group.id : G)⁻¹ = Group.id := by
   have h : (Group.id : G)⁻¹ * Group.id = Group.id := Group.inv_mul Group.id
   rwa [Group.mul_id] at h
 
+theorem double_inv [Group G] (a : G) : a⁻¹⁻¹ = a := by
+  have h1 : a⁻¹ * (a⁻¹)⁻¹ = e := mul_inv a⁻¹
+  have h2 : a⁻¹⁻¹ = a -> a⁻¹⁻¹ = a * (a⁻¹ * (a⁻¹)⁻¹) := by
+    intro h2
+    rw [h1, Group.mul_id]
+    exact h2
+  rw [h2, h1, Group.mul_id]
+  sorry
+
+
+
+
 class subgroup [Group G] (S : Set G) : Prop where
   mul_mem : ∀ {a b}, a ∈ S -> b ∈ S -> a * b ∈ S
   id_mem : (e : G) ∈ S
@@ -175,3 +187,28 @@ theorem ker_normal [Group G] [Group H] (φ : group_hom (G := G) (H := H)) :
     intro k hk g
     show φ.toFun (g * k * g⁻¹) = e
     rw [φ.map_mul, φ.map_mul, hom_inv, hk, Group.mul_id, mul_inv]
+
+-- Cosets
+def left_coset [Group G] (g : G) (S : Set G) : Set G :=
+  fun x => ∃ n, n ∈ S ∧ x = g * n
+
+-- Coset equivalence relation
+def coset_rel [Group G] (S : Set G) (a b : G) : Prop :=
+  a⁻¹ * b ∈ S
+
+-- An equivalence relation is reflexitive, symmetric, and transitive
+theorem coset_rel_refl [Group G] (S : Set G) [subgroup S] (a : G) : coset_rel S a a := by
+  show a⁻¹ * a ∈ S
+  rw [Group.inv_mul]
+  exact subgroup.id_mem
+
+theorem coset_rel_symm [Group G] (S : Set G) [subgroup S] {a b : G} (h : coset_rel S a b) :
+    coset_rel S b a := by
+  rw [coset_rel]
+  sorry
+
+-- Quotient group
+
+-- Induced operation
+-- Lagrange
+-- First isomorphism theorem
