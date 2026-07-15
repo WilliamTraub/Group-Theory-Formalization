@@ -24,7 +24,6 @@ class Group (G : Type u) where
   id_mul : ∀ Q : G, (mul id Q) = Q
   inv_mul : ∀ Q : G, (mul (inv Q) Q) = id
 
-
 def gpow [Group G] (a : G) : Int → G
   | Int.ofNat n => Nat.rec Group.id (fun _ x => Group.mul x a) n
   | Int.negSucc n => Nat.rec Group.id (fun _ x => Group.mul x (Group.inv a)) (n + 1)
@@ -72,16 +71,12 @@ theorem inv_id [Group G] : (Group.id : G)⁻¹ = Group.id := by
   rwa [Group.mul_id] at h
 
 theorem double_inv [Group G] (a : G) : a⁻¹⁻¹ = a := by
-  have h1 : a⁻¹ * (a⁻¹)⁻¹ = e := mul_inv a⁻¹
-  have h2 : a⁻¹⁻¹ = a -> a⁻¹⁻¹ = a * (a⁻¹ * (a⁻¹)⁻¹) := by
-    intro h2
-    rw [h1, Group.mul_id]
-    exact h2
-  rw [h2, h1, Group.mul_id]
-  sorry
-
-
-
+  have h1 : a⁻¹ * a⁻¹⁻¹ = e := mul_inv a⁻¹
+  have h2 : a⁻¹ * a = e := Group.inv_mul a
+  have h3 : a * a⁻¹ * a⁻¹⁻¹ = a * a * a⁻¹ := by
+    rw [<- Group.mul_assoc, h1, Group.mul_id, <- Group.mul_assoc, mul_inv, Group.mul_id]
+  rw [mul_inv, <- Group.mul_assoc, mul_inv, Group.mul_id, Group.id_mul] at h3
+  exact h3
 
 class subgroup [Group G] (S : Set G) : Prop where
   mul_mem : ∀ {a b}, a ∈ S -> b ∈ S -> a * b ∈ S
@@ -205,10 +200,29 @@ theorem coset_rel_refl [Group G] (S : Set G) [subgroup S] (a : G) : coset_rel S 
 theorem coset_rel_symm [Group G] (S : Set G) [subgroup S] {a b : G} (h : coset_rel S a b) :
     coset_rel S b a := by
   rw [coset_rel]
-  sorry
+  show b⁻¹ * a ∈ S
+  have h1 := subgroup.inv_mem h
+  rw [inv_mul_rev, double_inv] at h1
+  exact h1
+
+theorem coset_rel_trans [Group G] (S : Set G) [subgroup S] {a b c : G}
+    (h1 : coset_rel S a b) (h2 : coset_rel S b c) : coset_rel S a c := by
+  show a⁻¹ * c ∈ S
+  rw [coset_rel] at h1 h2
+  have h3 : a⁻¹ * b * (b⁻¹ * c) ∈ S := subgroup.mul_mem h1 h2
+  rw [Group.mul_assoc] at h3
+  rw [<- Group.mul_assoc a⁻¹, mul_inv, Group.mul_id] at h3
+  exact h3
+
+def coset_setoid [Group G] (S : Set G) [subgroup S] : Setoid G where
+  r := coset_rel S
+  iseqv := ⟨coset_rel_refl S, coset_rel_symm S, coset_rel_trans S⟩
 
 -- Quotient group
+def QuotientGroup [Group G] (S : Set G) [subgroup S] : Type u :=
+  Quotient (coset_setoid S)
 
--- Induced operation
+-- Quotient map universal property
+
 -- Lagrange
 -- First isomorphism theorem
