@@ -223,6 +223,16 @@ def QuotientGroup [Group G] (S : Set G) [subgroup S] : Type u :=
   Quotient (coset_setoid S)
 
 -- Quotient map universal property
-
+def quotientMul [Group G] (S : Set G) [normal_subgroup S] :
+    QuotientGroup S -> QuotientGroup S -> QuotientGroup S :=
+  Quotient.lift₂
+    (fun a b => (Quotient.mk (coset_setoid S) (a * b) : QuotientGroup S))
+    (by
+    intros a a' b b' h1 h2
+    apply Quotient.sound
+    have h3 : a * a' ∈ S := by
+      sorry
+    sorry
+    )
 -- Lagrange
 -- First isomorphism theorem
